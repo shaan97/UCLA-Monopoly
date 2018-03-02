@@ -1,7 +1,7 @@
 # UCLA-Monopoly
 
 ## Client - Server Communication
-Client-Server communication is done by sending JSON objects over a TCP/SSL connection. The specifications for the JSON objects are as follows.
+Client-Server communication is done by sending JSON objects over a WebSocket connection. The specifications for the JSON objects are as follows.
 
 ### Client Requests to Server
 The following specifies the requests a client can make to a server, and their syntactic form.
