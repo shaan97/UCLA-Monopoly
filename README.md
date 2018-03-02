@@ -27,11 +27,10 @@ To join a live game, the client will send a message specifying that he/she wishe
 The server will respond with success or failure.
 
 #### Location Info Requests
-Whenever dealing with data about location (requesting data about other players, mapping GPS coordinates to current location), the client needs to specify game_id (to validate this is a client), the type of request, and the latitude, longitude coordinates of the location the client is attempting to identify.
+Whenever dealing with data about location (requesting data about other players, mapping GPS coordinates to current location), the client needs to specify the type of request and the latitude, longitude coordinates of the location the client is attempting to identify.
 ```javascript
 {
   request: "LOC_INFO"
-  game_id: <GAME_ID>      // This is a string
   location: "<latitude>,<longitude>"
 }
 ```
@@ -41,7 +40,6 @@ The client may want to know who is currently in the game and metadata regarding 
 ```javascript
 {
   request: "PLAYER_INFO"
-  game_id: <GAME_ID>      // This is a string
 }
 ```
 The server will respond in a manner specified in the next major section; responds with failure otherwise.
