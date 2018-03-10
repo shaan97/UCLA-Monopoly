@@ -96,6 +96,7 @@ When responding about players, the following is expected.
 // Player objects
 {
   name: <player_name>,
+  credits: <Number of Credits in Bank>
   locations:  [
                 // Array of locations owned by player
               ]
