@@ -35,6 +35,7 @@ Whenever dealing with data about location (requesting data about other players, 
 }
 ```
 The server will respond in a manner specified in the next major section on success; responds with failure otherwise.
+
 #### Active Players Request
 The client may want to know who is currently in the game and metadata regarding them (names, bank account, locations owned, etc). To do this, the following request is made.
 ```javascript
@@ -43,6 +44,16 @@ The client may want to know who is currently in the game and metadata regarding 
 }
 ```
 The server will respond in a manner specified in the next major section; responds with failure otherwise.
+
+#### Making Purchases
+The client may want to make purchases in game (land, other perks, etc.). The client will then send the following request to the server.
+```javascript
+{
+  request: "PURCHASE"
+  purchase_code: <integer_code>
+}
+```
+The server will respond with success or failure and will adjust its internal state if necessary to reflect the purchase.
 
 ### Server Responses to Client
 The following specifies how a server will respond to a client, and their a syntactic form.
@@ -72,6 +83,8 @@ Whenever responding about locations, each location is described with the followi
 {
   status: 1,
   name: <unique name identifier>,
+  northeast: <northeast_gps_coordinates>
+  southwest: <southwest_gps_coordinates>
   prices: [
             // Array where i^th entry is the i^th tier
           ],
@@ -80,6 +93,7 @@ Whenever responding about locations, each location is described with the followi
           ]
 }
 ```
+Note that the `northeast` and `southwest` GPS coordinates exactly define a rectangular region.
 
 #### Player Data
 When responding about players, the following is expected.
