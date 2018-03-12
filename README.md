@@ -85,6 +85,7 @@ Whenever responding about locations, each location is described with the followi
   name: <unique name identifier>,
   northeast: <northeast_gps_coordinates>
   southwest: <southwest_gps_coordinates>
+  purchase_code: <integer_code>
   prices: [
             // Array where i^th entry is the i^th tier
           ],
