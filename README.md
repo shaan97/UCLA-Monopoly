@@ -49,8 +49,9 @@ The server will respond in a manner specified in the next major section; respond
 The client may want to make purchases in game (land, other perks, etc.). The client will then send the following request to the server.
 ```javascript
 {
-  request: "PURCHASE"
-  purchase_code: <integer_code>
+  request: "PURCHASE",
+  purchase_code: <integer_code>,
+  tier: <ith_tier> // Tiers described below
 }
 ```
 The server will respond with success or failure and will adjust its internal state if necessary to reflect the purchase.
