@@ -117,5 +117,8 @@ When responding about players, the following is expected.
   locations:  [
                 // Array of locations owned by player
               ]
+  tiers:      [
+                // Array of corresponding tiers owned by player
+              ]
 }
 ```
