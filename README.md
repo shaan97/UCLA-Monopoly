@@ -61,17 +61,18 @@ The following specifies how a server will respond to a client, and their a synta
 #### Success and Failure
 All responses must specify whether there is success or failure. All invalid requests will result in failure.
 
-Success/Failure takes the following form.
+Success/Failure takes the form of the HTTP Status Codes (see https://en.wikipedia.org/wiki/List_of_HTTP_status_codes). The following gives example, and likely typical, status codes.
+
 ```javascript
 // Specifies Success
 {
-  status: 1
+  status: 200
   // Extra data...
 }
 
 // Specifies Failure
 {
-  status: 0
+  status: 400
   // Extra data...
 }
 ```
@@ -81,7 +82,7 @@ Whenever responding about locations, each location is described with the followi
 
 ```javascript
 {
-  status: 1,
+  status: 200,
   name: <unique name identifier>,
   northeast: <northeast_gps_coordinates>
   southwest: <southwest_gps_coordinates>
@@ -102,7 +103,7 @@ When responding about players, the following is expected.
 ```javascript
 // Overall response
 {
-  status: 1,
+  status: 200,
   players: [
               // Array of players
            ]
