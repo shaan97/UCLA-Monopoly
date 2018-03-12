@@ -3,25 +3,28 @@
 ## Client - Server Communication
 Client-Server communication is done by sending JSON objects over a WebSocket connection. The specifications for the JSON objects are as follows.
 
+### Numbered Requests
+All requests come with a corresponding number to uniquely identify the request. This way, if multiple requests are made, the server can choose to respond in any arbitrary order.
+
+Client requests and Server responses therefore will always have a `request_id` field as shown below.
+
+```javascript
+{
+  // Content related to specific request
+  // ...
+  request_id: <unique_id_number>
+}
+```
+
 ### Client Requests to Server
 The following specifies the requests a client can make to a server, and their syntactic form.
 
-#### Creating a Game
-To create a game, the client will send a message specifying that he/she wishes to create a game with a specified name/identifier.
-```javascript
-{
-  request: "CREATE_GAME",
-  game_id: <GAME_ID>      // This is a string
-}
-```
-The server will respond with success or failure.
-
 #### Joining a Game
-To join a live game, the client will send a message specifying that he/she wishes to join a game with a specified name/identifier.
+To join a live game, the client will send a message specifying that he/she wishes to join the game.
 ```javascript
 {
   request: "JOIN_GAME",
-  game_id: <GAME_ID>      // This is a string
+  request_id: <unique_id_number>
 }
 ```
 The server will respond with success or failure.
@@ -30,8 +33,9 @@ The server will respond with success or failure.
 Whenever dealing with data about location (requesting data about other players, mapping GPS coordinates to current location), the client needs to specify the type of request and the latitude, longitude coordinates of the location the client is attempting to identify.
 ```javascript
 {
-  request: "LOC_INFO"
-  location: "<latitude>,<longitude>"
+  request: "LOC_INFO",
+  location: "<latitude>,<longitude>",
+  request_id: <unique_id_number>
 }
 ```
 The server will respond in a manner specified in the next major section on success; responds with failure otherwise.
@@ -41,6 +45,7 @@ The client may want to know who is currently in the game and metadata regarding 
 ```javascript
 {
   request: "PLAYER_INFO"
+  request_id: <unique_id_number>
 }
 ```
 The server will respond in a manner specified in the next major section; responds with failure otherwise.
@@ -51,7 +56,8 @@ The client may want to make purchases in game (land, other perks, etc.). The cli
 {
   request: "PURCHASE",
   purchase_code: <integer_code>,
-  tier: <ith_tier> // Tiers described below
+  tier: <ith_tier>, // Tiers described below
+  request_id: <unique_id_number>
 }
 ```
 The server will respond with success or failure and will adjust its internal state if necessary to reflect the purchase.
@@ -67,13 +73,15 @@ Success/Failure takes the form of the HTTP Status Codes (see https://en.wikipedi
 ```javascript
 // Specifies Success
 {
-  status: 200
+  status: 200,
+  request_id: <unique_id_number>,
   // Extra data...
 }
 
 // Specifies Failure
 {
-  status: 400
+  status: 400,
+  request_id: <unique_id_number>,
   // Extra data...
 }
 ```
@@ -84,10 +92,11 @@ Whenever responding about locations, each location is described with the followi
 ```javascript
 {
   status: 200,
+  request_id: <unique_id_number>,
   name: <unique name identifier>,
-  northeast: <northeast_gps_coordinates>
-  southwest: <southwest_gps_coordinates>
-  purchase_code: <integer_code>
+  northeast: <northeast_gps_coordinates>,
+  southwest: <southwest_gps_coordinates>,
+  purchase_code: <integer_code>,
   prices: [
             // Array where i^th entry is the i^th tier
           ],
@@ -105,6 +114,7 @@ When responding about players, the following is expected.
 // Overall response
 {
   status: 200,
+  request_id: <unique_id_number>,
   players: [
               // Array of players
            ]
