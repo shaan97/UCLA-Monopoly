@@ -53,7 +53,8 @@ namespace Monopoly
 
         private async Task<bool> JoinGame() {
             JObject json = new JObject {
-                ["request"] = "JOIN_GAME"
+                ["request"] = "JOIN_GAME",
+                ["player_name"] = player.Name
             };
             
             var response = JObject.Parse(await server.Request(json));
