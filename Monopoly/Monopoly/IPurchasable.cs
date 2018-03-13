@@ -6,6 +6,7 @@ namespace Monopoly
 {
     public interface IPurchasable
     {
-        string GetPurchaseCode();
+        long Price { get; }
+        long PurchaseCode { get; }
     }
 }
