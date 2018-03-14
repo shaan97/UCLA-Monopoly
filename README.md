@@ -109,7 +109,6 @@ Whenever responding about locations, each location is described with the followi
   ne_long: <northeast_gps_longitude>,
   sw_lat: <southwest_gps_latitude>,
   sw_long: <southwest_gps_longitude>,
-  purchase_code: <integer_code>,
   owner: <owner>,
   owned_until: <unix_timestamp>,
   tier: <tier_owned>,
