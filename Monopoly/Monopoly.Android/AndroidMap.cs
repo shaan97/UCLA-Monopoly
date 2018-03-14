@@ -38,8 +38,8 @@ namespace Monopoly.Droid {
            
             
             var locationRequest = new LocationRequest()
-                                        .SetInterval(2000)
-                                        .SetFastestInterval(1999)
+                                        .SetInterval(30 * 1000)
+                                        .SetFastestInterval(10 * 1000)
                                         .SetPriority(LocationRequest.PriorityHighAccuracy);
             fusedLocationProviderClient.RequestLocationUpdatesAsync(locationRequest, this);
             
@@ -78,9 +78,16 @@ namespace Monopoly.Droid {
         }
 
         public override void OnLocationResult(LocationResult result) {
+            if (result == null)
+                return;
+
             if (result.Locations.Any()) {
                 var location = result.Locations.First();
-                LocationChanged(this, (location.Latitude, location.Longitude));
+
+                var handler = LocationChanged;
+                if(handler != null)
+                    handler(this, (location.Latitude, location.Longitude));
+                    
             }
             else {
                 System.Diagnostics.Debug.WriteLine("No locations to work with.");

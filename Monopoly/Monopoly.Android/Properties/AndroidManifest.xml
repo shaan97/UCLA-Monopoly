@@ -7,5 +7,8 @@
 	<uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
 	<uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION" />
 	<uses-permission android:name="android.permission.INTERNET" />
-	<application android:label="Monopoly.Android"></application>
+	<application android:label="Monopoly.Android">
+    <meta-data android:name="com.google.android.maps.v2.API_KEY"
+            android:value="AIzaSyA8IbTiT6Rx-Yi0yXKcaOFlReKHHIz0m44" />
+  </application>
 </manifest>
