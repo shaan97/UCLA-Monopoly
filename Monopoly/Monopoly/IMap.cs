@@ -19,10 +19,8 @@ namespace Monopoly
         /* An event that that will notify all subscribers that the current location 
          * has changed.
          * 
-         * @param ((double, double), (double, double))      A pair of GPS coordinates
-         *                                                  representing old location
-         *                                                  and new location, respectively
+         * @param (double, double)          GPS coordinates of the new location
          */
-        event EventHandler<((double, double), (double, double))> LocationChanged;
+        event EventHandler<(double, double)> LocationChanged;
     }
 }
