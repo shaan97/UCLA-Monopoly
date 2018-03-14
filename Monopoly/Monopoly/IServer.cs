@@ -9,11 +9,13 @@ namespace Monopoly
 {
     public interface IServer
     {
+        event EventHandler<string> OnServerNotification;
+
         // Connects to the server by opening the connection
         bool Connect();
 
         // Connects to server asynchronously
-        Task<bool> ConnectAsync();
+        //Task<bool> ConnectAsync();
 
         // Send raw data to the server, with no response expected. 
         void Send(JObject json);
@@ -25,6 +27,6 @@ namespace Monopoly
         void Close();
 
         // Closes connection to the server asynchronously
-        Task<bool> CloseAsync();
+        //Task<bool> CloseAsync();
     }
 }

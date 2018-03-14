@@ -29,25 +29,26 @@ namespace Monopoly
 
         // Separate member variable for direct reference to main client
         public Player Player { get; protected set; }
-        
-        public Game(string name) {
-            server = new WebSocketServer();
-            var connection = server.ConnectAsync();
 
+        // A TEMPORARY HACK, PLEASE DELETE
+        public static Game Instance;
+
+        public Game(string name) {
+            Instance = this;
+            
+            server = new WebSocketServer();
+            server.OnServerNotification += Server_OnServerNotification;
+            var connection = server.Connect();
+            
             Player = new Player(name);
             Opponents = new Dictionary<string, Player>();
-
+            
 #if __ANDROID__
             map = Monopoly.Droid.AndroidMap.Instance;
-#else
-            map = null;
 #endif
             // If the location changes, change state accordingly
             map.LocationChanged += this.OnLocationChanged;
             
-            // Make sure connection is established
-            connection.Wait();
-
             // Must run join request synchronously, so wait for task completion
             var join_request = JoinGame();
             join_request.Wait();
@@ -56,22 +57,23 @@ namespace Monopoly
                 System.Diagnostics.Debug.WriteLine("Joining game failed, so throwing exception.");
                 throw new Exception("Unable to join game.");
             }
+           
+        }
 
-            // Get all information on active opponents in game synchronously
-           /* var info_request = LoadOpponents();
-            info_request.Wait();
+        private void Server_OnServerNotification(object sender, string notif) {
+            JObject json = JObject.Parse(notif);
 
-            if(!info_request.Result) {
-                System.Diagnostics.Debug.WriteLine("Unable to get data on opponents, so throwing exception.");
-                throw new Exception("Unable to get opponent data.");
+            if (json["operation"] == null || (string)json["operation"] != "purchase_made") {
+                System.Diagnostics.Debug.WriteLine($"Received invalid notification:\n{notif}");
+                return;
             }
 
-            */
+            Opponents[(string)json["owner"]].Locations.Add(new Location(new LocationStats(json), (long)json["tier"]));
         }
 
         private async Task<bool> JoinGame() {
             // Build HTTP Request
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(https_uri + "/players/addplayer");
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(https_uri + "/players/addplayer/");
             request.Method = "POST";
 
             string post_data = $"player_name={Player.Name}";
@@ -85,12 +87,12 @@ namespace Monopoly
             request.ContentLength = bytes.Length;
 
             // Send data
-            Stream stream = request.GetRequestStream();
-            stream.Write(bytes, 0, bytes.Length);
-            stream.Close();
+            using (var stream = request.GetRequestStream()) {
+                stream.Write(bytes, 0, bytes.Length);
+            }
 
             // Get response
-            HttpWebResponse response = (HttpWebResponse)(await request.GetResponseAsync());
+            HttpWebResponse response = (HttpWebResponse)(request.GetResponse());
 
             System.Diagnostics.Debug.WriteLine($"JOIN_GAME response status: {(int)response.StatusCode}");
          
@@ -101,12 +103,12 @@ namespace Monopoly
 
         // This code is not extensible if this app becomes global
         public async Task<List<LocationStats>> GetAllLocations() {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(https_uri + "/locations/alllocations");
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(https_uri + "/locations/alllocations/");
             request.Method = "GET";
-            var response = await request.GetResponseAsync();
+            var response = request.GetResponse();
 
-
-            string message = await new StreamReader(response.GetResponseStream()).ReadToEndAsync();
+            var stream = response.GetResponseStream();
+            string message = new StreamReader(stream).ReadToEnd();
             JArray json = JArray.Parse(message);
 
             List<LocationStats> locations = new List<LocationStats>();
@@ -163,11 +165,17 @@ namespace Monopoly
         */
 
         private async void OnLocationChanged(object sender, (double, double) current_location) {
-            if (last_location.Contains(current_location))
+            if (last_location == null || last_location.Contains(current_location)) {
+                System.Diagnostics.Debug.WriteLine("Still in same location.");
                 return;
+            }
+
+            System.Diagnostics.Debug.WriteLine("Getting Location Stats on current location.");
 
             // Update last_location field
             last_location = await GetLocationStats(current_location);
+
+            System.Diagnostics.Debug.WriteLine($"Now at {last_location.Name}.");
 
             // If someone owns property, pay tax to them
             if (last_location.Owner != null)
@@ -179,7 +187,7 @@ namespace Monopoly
                 return false;
 
             // Build HTTP Request
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(https_uri + "/locations/visited");
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(https_uri + "/locations/visited/");
             request.Method = "PUT";
 
             string put_data = $"player_name={Player.Name}&location_name={property.Name}";
@@ -195,15 +203,17 @@ namespace Monopoly
             stream.Close();
 
             // Get response
-            HttpWebResponse response = (HttpWebResponse)(await request.GetResponseAsync());
+            HttpWebResponse response = (HttpWebResponse)(request.GetResponse());
             bool success = (int)response.StatusCode / 200 == 1;
 
             // Withdraw tax from player account if successful status code
             if (success) {
                 Player.Account.Withdraw(property.Taxes[property.Tier]);
-
                 // Notify subscribers
-                OnCreditsChange(this, Player.Account.Credits);
+
+                var handler = OnCreditsChange;
+                if(handler != null)
+                    handler(this, Player.Account.Credits);
             }
 
             return success;
@@ -213,7 +223,10 @@ namespace Monopoly
             // JSON requesting Location info at specified coordinates
             JObject json = new JObject {
                 ["operation"] = "LOC_INFO",
-                ["location"] = $"{gps_coordinates.Item1},{gps_coordinates.Item2}"
+                ["parameters"] = new JObject {
+                    ["lat"] = gps_coordinates.Item1,
+                    ["long"] = gps_coordinates.Item2
+                }
             };
 
             // Request response from server asynchronously
@@ -235,7 +248,6 @@ namespace Monopoly
         public async Task<bool> Purchase(Location location) {
             JObject json = new JObject {
                 ["operation"] = "PURCHASE",
-                ["purchase_code"] = location.Properties.PurchaseCode,
                 ["tier"] = location.Tier
             };
 
@@ -267,9 +279,11 @@ namespace Monopoly
             var success = (bool)response["success"];
             if (success) {
                 Player.Purchase(item);
-
+                var handler = OnCreditsChange;
+                
                 // Notify subscribers of change in credits
-                OnCreditsChange(this, Player.Account.Credits);
+                if (handler != null)
+                    OnCreditsChange(this, Player.Account.Credits);
             }
 
             return success;

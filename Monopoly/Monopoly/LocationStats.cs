@@ -8,6 +8,8 @@ namespace Monopoly
 {
     public class LocationStats
     {
+        public readonly int NUM_TIERS = 5;
+
         public string Name { get; protected set; }
 
         // The i^th price corresponds to the i^th tier
@@ -18,9 +20,6 @@ namespace Monopoly
 
         // (NorthEast, SouthWest) GPS Coordinates to define the region
         public ((double, double), (double, double)) Corners { get; protected set; }
-
-        // Purchase Code to represent this item
-        public long PurchaseCode { get; protected set; }
 
         // If owned, set to the player's name
         public string Owner { get; protected set; } = null;
@@ -37,29 +36,23 @@ namespace Monopoly
             // Retrieve values of interest
             Name = (string)json["name"];
 
-            var northeast = ((string)json["northeast"]).Split(',');
-            var southwest = ((string)json["southwest"]).Split(',');
-            Corners = ((Convert.ToDouble(northeast[0]), Convert.ToDouble(northeast[1])),
-                       (Convert.ToDouble(southwest[0]), Convert.ToDouble(southwest[1])));
+            var northeast = (Convert.ToDouble((string)json["ne_lat"]), Convert.ToDouble((string)json["ne_long"]));
+            var southwest = (Convert.ToDouble((string)json["sw_lat"]), Convert.ToDouble((string)json["sw_long"]));
 
-            var prices = (JArray)json["prices"];
-            var taxes = (JArray)json["taxes"];
-            var size = Math.Min(prices.Count, taxes.Count);
+            Corners = ((Convert.ToDouble(northeast.Item1), Convert.ToDouble(northeast.Item2)),
+                       (Convert.ToDouble(southwest.Item1), Convert.ToDouble(southwest.Item2)));
+
+            var price = (int)json["price"];
+            var taxes = (int)json["tax"];
+
+            Owner = (string)json["owner"];
+            Tier = (int)json["tier"];
 
             var owned_until = (string)json["owned_until"];
             OwnedUntil = Convert.ToInt64(owned_until);
 
-            var purchase_code = (string)json["purchase_code"];
-            PurchaseCode = Convert.ToInt64(purchase_code);
-            Prices = new long[size];
-            Taxes = new long[size];
-
-
-            // Makes sure Prices.Count == Taxes.Count
-            for (int i = 0; i < size; i++) {
-                Prices[i] = (long)prices[i];
-                Taxes[i] = (long)taxes[i];
-            }
+            Prices = new long[] { 100, 200, 300, 400, 500 };
+            Taxes = new long[] { 50, 100, 150, 200, 250 };
         }
 
         // @returns true if @param gps_coordinates is inside this location

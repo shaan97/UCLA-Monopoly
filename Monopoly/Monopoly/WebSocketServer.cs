@@ -10,7 +10,9 @@ using Newtonsoft.Json.Linq;
 
 namespace Monopoly {
     public class WebSocketServer : IServer {
-        public static string Url { get; } = "";
+        public static string Url { get; } = "ws://monopoly-ucla.herokuapp.com/ws/locations/";
+
+        public event EventHandler<string> OnServerNotification;
 
         private WebSocket socket;
         private bool connected = false;
@@ -60,17 +62,17 @@ namespace Monopoly {
             socket.Open();
             return connected;
         }
-
+        /*
         public Task<bool> ConnectAsync() {
             return socket.OpenAsync();
         }
-
+        */
         // TODO : Design issue. Send some sort of generic message object, not JObject.
         public async void Send(JObject json) {
 
             int request_id = -1;
             LinkedListNode<int> node;
-            SemaphoreSlim complete = new SemaphoreSlim(1, 1);
+            SemaphoreSlim complete = new SemaphoreSlim(0, 1);
 
             lock (available_ids) {
                 node = available_ids.First;
@@ -126,7 +128,7 @@ namespace Monopoly {
         public async Task<string> Request(JObject json) {
             int request_id = -1;
             LinkedListNode<int> node;
-            SemaphoreSlim complete = new SemaphoreSlim(1, 1);
+            SemaphoreSlim complete = new SemaphoreSlim(0, 1);
 
             lock (available_ids) {
                 node = available_ids.First;
@@ -160,7 +162,7 @@ namespace Monopoly {
             var json = JObject.Parse(e.Message);
 
             if (json["request_id"] == null) {
-                System.Diagnostics.Debug.WriteLine($"Invalid JSON response from server. Received:\n{e.Message}");
+                OnServerNotification(this, e.Message);
                 return;
             }
 
@@ -174,12 +176,12 @@ namespace Monopoly {
         }
 
         private void OnClose(object sender, EventArgs e) {
-            System.Diagnostics.Debug.WriteLine("Socket closed.");
+            System.Diagnostics.Debug.WriteLine($"Socket closed.");
             connected = false;
         }
 
         private void OnError(object sender, SuperSocket.ClientEngine.ErrorEventArgs e) {
-            System.Diagnostics.Debug.WriteLine("Socket error.");
+            System.Diagnostics.Debug.WriteLine($"Socket error. {e.Exception.Message}");
             connected = false;
         }
 
@@ -191,10 +193,10 @@ namespace Monopoly {
         public void Close() {
             socket.Close();
         }
-
+        /*
         public Task<bool> CloseAsync() {
             return socket.CloseAsync();
         }
-
+        */
     }
 }
