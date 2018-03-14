@@ -15,7 +15,7 @@ using Android.Widget;
 
 
 namespace Monopoly.Droid {
-    class AndroidMap : IMap {
+    public class AndroidMap : Android.Gms.Location.LocationCallback, IMap {
 
         public event EventHandler<(double, double)> LocationChanged;
 
@@ -28,20 +28,42 @@ namespace Monopoly.Droid {
         }
 
         private AndroidMap() {
-            // TODO : Does this cast fail?
-            fusedLocationProviderClient = LocationServices.GetFusedLocationProviderClient((Android.App.Activity)Plugin.CurrentActivity.CrossCurrentActivity.Current);
+            if (!IsGooglePlayServicesInstalled()) {
+                throw new Exception("Google Play services not installed.");
+            }
+
+            // Get GPS provider
+            fusedLocationProviderClient = LocationServices.GetFusedLocationProviderClient(Plugin.CurrentActivity.CrossCurrentActivity.Current.Activity);
             
-            /*
+           
             
             var locationRequest = new LocationRequest()
-                                        .SetInterval(60 * 1000 * 5)
-                                        .SetFastestInterval(60 * 1000 * 1)
+                                        .SetInterval(2000)
+                                        .SetFastestInterval(1999)
                                         .SetPriority(LocationRequest.PriorityHighAccuracy);
-            await fusedLocationProviderClient.RequestLocationUpdatesAsync(locationRequest, this);
+            fusedLocationProviderClient.RequestLocationUpdatesAsync(locationRequest, this);
             
-            */
         }
 
+        private bool IsGooglePlayServicesInstalled() {
+            var queryResult = GoogleApiAvailability.Instance.IsGooglePlayServicesAvailable(Plugin.CurrentActivity.CrossCurrentActivity.Current.Activity);
+
+            if (queryResult == ConnectionResult.Success) {
+                //Log.Info("MainActivity", "Google Play Services is installed on this device.");
+                return true;
+            }
+
+            if (GoogleApiAvailability.Instance.IsUserResolvableError(queryResult)) {
+                // Check if there is a way the user can resolve the issue
+                var errorString = GoogleApiAvailability.Instance.GetErrorString(queryResult);
+                //Log.Error("MainActivity", "There is a problem with Google Play Services on this device: {0} - {1}",
+                          //queryResult, errorString);
+
+                // Alternately, display the error to the user.
+            }
+
+            return false;
+        }
 
         public async Task<(double, double)> GetCurrentCoordinates() {
             var location = await fusedLocationProviderClient.GetLastLocationAsync();
@@ -49,6 +71,20 @@ namespace Monopoly.Droid {
                 return (0, 0);
             System.Diagnostics.Debug.WriteLine($"Acquired (latitude, longitude) = ({location.Latitude},{location.Longitude})");
             return (location.Latitude, location.Longitude);
+        }
+
+        public override void OnLocationAvailability(LocationAvailability locationAvailability) {
+            System.Diagnostics.Debug.WriteLine($"Location Availability: {locationAvailability.IsLocationAvailable}");
+        }
+
+        public override void OnLocationResult(LocationResult result) {
+            if (result.Locations.Any()) {
+                var location = result.Locations.First();
+                LocationChanged(this, (location.Latitude, location.Longitude));
+            }
+            else {
+                System.Diagnostics.Debug.WriteLine("No locations to work with.");
+            }
         }
     }
 }
