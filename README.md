@@ -143,6 +143,16 @@ When responding about players, the following is expected.
               ]
 }
 ```
+
+#### Another Player Makes a Purchase
+```
+  {
+      operation: "purchase_made",
+      location: <location_name>,
+      owner: <owner_name>,
+      ownedUntil: <unix_timestamp>,
+  }
+```
 ### HTTP Communication
 
 #### Joining a Game
