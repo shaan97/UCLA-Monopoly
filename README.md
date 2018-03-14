@@ -159,3 +159,9 @@ Note: `player_name` is the name of the client, not the owner of the location.
 
 This will return a HTTP Status Code.
 
+###$ All Locations
+
+```GET /locations/alllocations/```
+
+This will return a JSON list of all locations in the same format as the location data
+
