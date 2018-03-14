@@ -61,5 +61,13 @@ namespace Monopoly
                 Taxes[i] = (long)taxes[i];
             }
         }
+
+        // @returns true if @param gps_coordinates is inside this location
+        public bool Contains((double, double) gps_coordinates) {
+            return  gps_coordinates.Item1 >= Corners.Item2.Item1 &&
+                    gps_coordinates.Item2 >= Corners.Item2.Item2 &&
+                    gps_coordinates.Item1 <= Corners.Item1.Item1 &&
+                    gps_coordinates.Item2 <= Corners.Item1.Item2;
+        }
     }
 }
