@@ -22,6 +22,9 @@ namespace Monopoly
         // Purchase Code to represent this item
         public long PurchaseCode { get; protected set; }
 
+        public long OwnedUntil { get; protected set; }
+
+
         public LocationStats(string json) : this(JObject.Parse(json)) { }
 
         public LocationStats(JObject json) {
@@ -35,10 +38,16 @@ namespace Monopoly
 
             var prices = (JArray)json["prices"];
             var taxes = (JArray)json["taxes"];
-
             var size = Math.Min(prices.Count, taxes.Count);
+
+            var owned_until = (string)json["owned_until"];
+            OwnedUntil = Convert.ToInt64(owned_until);
+
+            var purchase_code = (string)json["purchase_code"];
+            PurchaseCode = Convert.ToInt64(purchase_code);
             Prices = new long[size];
             Taxes = new long[size];
+
 
             // Makes sure Prices.Count == Taxes.Count
             for (int i = 0; i < size; i++) {
