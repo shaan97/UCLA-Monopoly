@@ -43,7 +43,7 @@ namespace Monopoly
             }
 
             // Get all information on active opponents in game synchronously
-            var info_request = LoadOpponents();
+           /* var info_request = LoadOpponents();
             info_request.Wait();
 
             if(!info_request.Result) {
@@ -51,7 +51,7 @@ namespace Monopoly
                 throw new Exception("Unable to get opponent data.");
             }
 
-            
+            */
         }
 
         private async Task<bool> JoinGame() {
