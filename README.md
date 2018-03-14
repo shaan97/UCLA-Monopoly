@@ -19,28 +19,22 @@ Client requests and Server responses therefore will always have a `request_id` f
 ### Client Requests to Server
 The following specifies the requests a client can make to a server, and their syntactic form.
 
-#### Joining a Game
-To join a live game, the client will send a message specifying that he/she wishes to join the game.
-```javascript
-{
-  request: "JOIN_GAME",
-  request_id: <unique_id_number>
-}
-```
-The server will respond with success or failure.
-
 #### Location Info Requests
 Whenever dealing with data about location (requesting data about other players, mapping GPS coordinates to current location), the client needs to specify the type of request and the latitude, longitude coordinates of the location the client is attempting to identify.
 ```javascript
 {
-  request: "LOC_INFO",
-  location: "<latitude>,<longitude>",
+  operation: "LOC_INFO",
+  parameters: {
+                name: <name>,
+                lat: <lat>,
+                long: <long>
+              }
   request_id: <unique_id_number>
 }
 ```
 The server will respond in a manner specified in the next major section on success; responds with failure otherwise.
 
-#### Active Players Request
+#### Active Players Request (NOT FOR SUBMISSION)
 The client may want to know who is currently in the game and metadata regarding them (names, bank account, locations owned, etc). To do this, the following request is made.
 ```javascript
 {
@@ -57,6 +51,7 @@ The client may want to make purchases in game (land, other perks, etc.). The cli
   request: "PURCHASE",
   purchase_code: <integer_code>,
   tier: <ith_tier>, // Tiers described below
+  how_long: <hours_elapsed_time>,
   request_id: <unique_id_number>
 }
 ```
@@ -73,15 +68,29 @@ Success/Failure takes the form of the HTTP Status Codes (see https://en.wikipedi
 ```javascript
 // Specifies Success
 {
-  status: 200,
+  success: true,
   request_id: <unique_id_number>,
   // Extra data...
 }
 
 // Specifies Failure
 {
-  status: 400,
+  success: false,
   request_id: <unique_id_number>,
+  reason: <reason_for_failure>,
+  
+  /* If reason == "balance" */
+  player_balance: <client_balance>,
+  amount_required: <amount_required>,
+  
+  /* If reason == "owned" */
+  location_owner: <location_owner>,
+  location_owned_until: <unix_timestamp>,
+  
+  /* If reason == "bad_param" */
+  param_name: <first_bad_param>,
+  explanation: <missing_or_malformed>
+  
   // Extra data...
 }
 ```
@@ -97,6 +106,8 @@ Whenever responding about locations, each location is described with the followi
   northeast: <northeast_gps_coordinates>,
   southwest: <southwest_gps_coordinates>,
   purchase_code: <integer_code>,
+  owner: <owner>,
+  owned_until: <unix_timestamp>,
   prices: [
             // Array where i^th entry is the i^th tier
           ],
@@ -107,7 +118,7 @@ Whenever responding about locations, each location is described with the followi
 ```
 Note that the `northeast` and `southwest` GPS coordinates exactly define a rectangular region.
 
-#### Player Data
+#### Player Data (NOT FOR SUBMISSION)
 When responding about players, the following is expected.
 
 ```javascript
@@ -132,3 +143,17 @@ When responding about players, the following is expected.
               ]
 }
 ```
+### HTTP Communication
+
+#### Joining a Game
+To join a live game, the client will send a message specifying that he/she wishes to join the game.
+`POST /players/addplayer/?player_name=<player_name>`
+
+The server will respond with an HTTP Status Code.
+
+#### Taxation
+Note: `player_name` is the name of the client, not the owner of the location.
+`PUT /locations/visited/?player_name=<player_name>&location_name=<location_name>'
+
+This will return a HTTP Status Code.
+
