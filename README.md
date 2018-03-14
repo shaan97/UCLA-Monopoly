@@ -110,6 +110,7 @@ Whenever responding about locations, each location is described with the followi
   purchase_code: <integer_code>,
   owner: <owner>,
   owned_until: <unix_timestamp>,
+  tier: <tier_owned>,
   prices: [
             // Array where i^th entry is the i^th tier
           ],
