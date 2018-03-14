@@ -30,7 +30,7 @@ namespace Monopoly
         // Separate member variable for direct reference to main client
         public Player Player { get; protected set; }
         
-        private Game(string name) {
+        public Game(string name) {
             server = new WebSocketServer();
             var connection = server.ConnectAsync();
 
