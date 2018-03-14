@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +18,7 @@ namespace Monopoly
         public Dictionary<string, Player> Opponents { get; protected set; }
 
         private IServer server;
+        private readonly string https_uri = "https://monopoly-ucla.herokuapp.com";
 
         // Separate member variable for direct reference to main client
         public Player Player { get; protected set; }
@@ -52,28 +55,42 @@ namespace Monopoly
         }
 
         private async Task<bool> JoinGame() {
-            JObject json = new JObject {
-                ["operation"] = "JOIN_GAME",
-                ["player_name"] = Player.Name
-            };
-            
-            var response = JObject.Parse(await server.operation(json.ToString()));
-            var status = (int)response["status"];
+            // Build HTTP Request
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(https_uri + "/players/addplayer");
+            request.Method = "POST";
 
-            System.Diagnostics.Debug.WriteLine($"JOIN_GAME response status: {status}");
+            string post_data = $"player_name={Player.Name}";
+            ASCIIEncoding encoding = new ASCIIEncoding();
+            byte[] bytes = encoding.GetBytes(post_data);
+            
+            // Set ContentType for POST request
+            request.ContentType = "application/x-www-form-urlencoded";
+
+            // Set Length to length of post_data
+            request.ContentLength = bytes.Length;
+
+            // Send data
+            Stream stream = request.GetRequestStream();
+            stream.Write(bytes, 0, bytes.Length);
+            stream.Close();
+
+            // Get response
+            HttpWebResponse response = (HttpWebResponse)(await request.GetResponseAsync());
+
+            System.Diagnostics.Debug.WriteLine($"JOIN_GAME response status: {(int)response.StatusCode}");
          
             // HTTP Status Code 2xx for Success
-            return status / 200 == 1;
+            return (int)response.StatusCode / 200 == 1;
 
         }
-
+        /*
         private async Task<bool> LoadOpponents() {
             JObject json = new JObject {
                 ["operation"] = "PLAYER_INFO"
             };
 
-            var response = JObject.Parse(await server.Request(json.ToString()));
-            var status = (int)response["status"];
+            var response = JObject.Parse(await server.Request(json));
+            var status = (bool)response["success"];
 
             System.Diagnostics.Debug.WriteLine($"PLAYER_INFO response status: {status}");
 
@@ -110,6 +127,39 @@ namespace Monopoly
                 return false;
             }
         }
+        */
+
+        public async Task<bool> TaxPlayer(LocationStats property) {
+            if (property.Owner == null)
+                return false;
+
+            // Build HTTP Request
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(https_uri + "/locations/visited");
+            request.Method = "PUT";
+
+            string put_data = $"player_name={Player.Name}&location_name={property.Name}";
+            ASCIIEncoding encoding = new ASCIIEncoding();
+            byte[] bytes = encoding.GetBytes(put_data);
+
+            // Set Length to length of post_data
+            request.ContentLength = bytes.Length;
+
+            // Send data
+            Stream stream = request.GetRequestStream();
+            stream.Write(bytes, 0, bytes.Length);
+            stream.Close();
+
+            // Get response
+            HttpWebResponse response = (HttpWebResponse)(await request.GetResponseAsync());
+            bool success = (int)response.StatusCode / 200 == 1;
+
+            // Withdraw tax from player account if successful status code
+            if (success) {
+                Player.Account.Withdraw(property.Taxes[property.Tier]);
+            }
+
+            return success;
+        }
 
         public async Task<LocationStats> GetLocationStats((double, double) gps_coordinates) {
             // JSON requesting Location info at specified coordinates
@@ -119,17 +169,14 @@ namespace Monopoly
             };
 
             // Request response from server asynchronously
-            var response = JObject.Parse(await server.Request(json.ToString()));
+            var response = JObject.Parse(await server.Request(json));
 
-            // Status using HTTP Status Codes
-            int status = (int)response["status"];
+            bool success = (bool)response["success"];
 
-
-            System.Diagnostics.Debug.WriteLine($"LOC_INFO response status: {status}");
+            System.Diagnostics.Debug.WriteLine($"LOC_INFO response status: {success}");
 
             LocationStats location_stats = null;
-            if (status / 200 == 1) {
-                // HTTP Status Code 2xx for Success
+            if (success) {
                 location_stats = new LocationStats(response);
             }
             
@@ -145,10 +192,10 @@ namespace Monopoly
             };
 
             // Send query and await response asynchronously
-            var response = JObject.Parse(await server.Request(json.ToString()));
+            var response = JObject.Parse(await server.Request(json));
 
             // True iff HTTP Status Code 2xx (Success)
-            var success = (int)response["status"] / 200 == 1;
+            var success = (bool)response["success"];
             if (success) {
                 Player.Purchase(location);
             }
@@ -163,10 +210,10 @@ namespace Monopoly
             };
 
             // Send query and await response asynchronously
-            var response = JObject.Parse(await server.Request(json.ToString()));
-            
+            var response = JObject.Parse(await server.Request(json));
+
             // True iff HTTP Status Code 2xx (Success)
-            var success = (int)response["status"] / 200 == 1;
+            var success = (bool)response["success"];
             if (success) {
                 Player.Purchase(item);
             }
