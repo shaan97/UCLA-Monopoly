@@ -149,13 +149,15 @@ When responding about players, the following is expected.
 
 #### Joining a Game
 To join a live game, the client will send a message specifying that he/she wishes to join the game.
-`POST /players/addplayer/?player_name=<player_name>`
+
+```POST /players/addplayer/?player_name=<player_name>```
 
 The server will respond with an HTTP Status Code.
 
 #### Taxation
 Note: `player_name` is the name of the client, not the owner of the location.
-`PUT /locations/visited/?player_name=<player_name>&location_name=<location_name>'
+
+```PUT /locations/visited/?player_name=<player_name>&location_name=<location_name>```
 
 This will return a HTTP Status Code.
 
