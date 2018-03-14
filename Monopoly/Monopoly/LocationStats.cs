@@ -22,8 +22,14 @@ namespace Monopoly
         // Purchase Code to represent this item
         public long PurchaseCode { get; protected set; }
 
-        public long OwnedUntil { get; protected set; }
+        // If owned, set to the player's name
+        public string Owner { get; protected set; } = null;
 
+        // Unix Timestamp of when property expires if owned
+        public long OwnedUntil { get; protected set; } = 0;
+
+        // Tier of property if owned
+        public int Tier { get; protected set; } = 0;
 
         public LocationStats(string json) : this(JObject.Parse(json)) { }
 
