@@ -30,7 +30,7 @@ namespace Monopoly
         // Separate member variable for direct reference to main client
         public Player Player { get; protected set; }
         
-        public Game(string name) {
+        private Game(string name) {
             server = new WebSocketServer();
             var connection = server.ConnectAsync();
 
@@ -97,6 +97,24 @@ namespace Monopoly
             // HTTP Status Code 2xx for Success
             return (int)response.StatusCode / 200 == 1;
 
+        }
+
+        // This code is not extensible if this app becomes global
+        public async Task<List<LocationStats>> GetAllLocations() {
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(https_uri + "/locations/alllocations");
+            request.Method = "GET";
+            var response = await request.GetResponseAsync();
+
+
+            string message = await new StreamReader(response.GetResponseStream()).ReadToEndAsync();
+            JArray json = JArray.Parse(message);
+
+            List<LocationStats> locations = new List<LocationStats>();
+            foreach (var location in json) {
+                locations.Add(new LocationStats((JObject)location));
+            }
+
+            return locations;
         }
         /*
         private async Task<bool> LoadOpponents() {
