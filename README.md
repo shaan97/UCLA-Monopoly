@@ -38,7 +38,7 @@ The server will respond in a manner specified in the next major section on succe
 The client may want to know who is currently in the game and metadata regarding them (names, bank account, locations owned, etc). To do this, the following request is made.
 ```javascript
 {
-  request: "PLAYER_INFO"
+  operation: "PLAYER_INFO"
   request_id: <unique_id_number>
 }
 ```
@@ -48,7 +48,7 @@ The server will respond in a manner specified in the next major section; respond
 The client may want to make purchases in game (land, other perks, etc.). The client will then send the following request to the server.
 ```javascript
 {
-  request: "PURCHASE",
+  operation: "PURCHASE",
   purchase_code: <integer_code>,
   tier: <ith_tier>, // Tiers described below
   how_long: <hours_elapsed_time>,
@@ -89,7 +89,9 @@ Success/Failure takes the form of the HTTP Status Codes (see https://en.wikipedi
   
   /* If reason == "bad_param" */
   param_name: <first_bad_param>,
-  explanation: <missing_or_malformed>
+  explanation: <missing_or_malformed>,
+  
+  /* Could also have reason == "loc_dne" */
   
   // Extra data...
 }
@@ -100,7 +102,7 @@ Whenever responding about locations, each location is described with the followi
 
 ```javascript
 {
-  status: 200,
+  success: true,
   request_id: <unique_id_number>,
   name: <unique name identifier>,
   northeast: <northeast_gps_coordinates>,
@@ -124,7 +126,7 @@ When responding about players, the following is expected.
 ```javascript
 // Overall response
 {
-  status: 200,
+  success: true
   request_id: <unique_id_number>,
   players: [
               // Array of players
