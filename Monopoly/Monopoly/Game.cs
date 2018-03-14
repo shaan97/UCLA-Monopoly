@@ -18,7 +18,7 @@ namespace Monopoly
         private IServer server;
 
         // Separate member variable for direct reference to main client
-        private Player player;
+        public Player player { get; protected set; }
         
         public Game(string name) {
             server = new WebSocketServer();
