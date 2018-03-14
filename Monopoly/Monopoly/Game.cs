@@ -15,7 +15,14 @@ namespace Monopoly
 {
     public class Game
     {
+
+        public event EventHandler<long> OnCreditsChange;
+
         public Dictionary<string, Player> Opponents { get; protected set; }
+
+        private LocationStats last_location;
+
+        private IMap map;
 
         private IServer server;
         private readonly string https_uri = "https://monopoly-ucla.herokuapp.com";
@@ -30,6 +37,14 @@ namespace Monopoly
             Player = new Player(name);
             Opponents = new Dictionary<string, Player>();
 
+#if __ANDROID__
+            map = Monopoly.Droid.AndroidMap.Instance;
+#else
+            map = null;
+#endif
+            // If the location changes, change state accordingly
+            map.LocationChanged += this.OnLocationChanged;
+            
             // Make sure connection is established
             connection.Wait();
 
@@ -129,7 +144,19 @@ namespace Monopoly
         }
         */
 
-        public async Task<bool> TaxPlayer(LocationStats property) {
+        private async void OnLocationChanged(object sender, (double, double) current_location) {
+            if (last_location.Contains(current_location))
+                return;
+
+            // Update last_location field
+            last_location = await GetLocationStats(current_location);
+
+            // If someone owns property, pay tax to them
+            if (last_location.Owner != null)
+                await TaxPlayer(last_location);
+        }
+
+        private async Task<bool> TaxPlayer(LocationStats property) {
             if (property.Owner == null)
                 return false;
 
@@ -156,6 +183,9 @@ namespace Monopoly
             // Withdraw tax from player account if successful status code
             if (success) {
                 Player.Account.Withdraw(property.Taxes[property.Tier]);
+
+                // Notify subscribers
+                OnCreditsChange(this, Player.Account.Credits);
             }
 
             return success;
@@ -198,6 +228,9 @@ namespace Monopoly
             var success = (bool)response["success"];
             if (success) {
                 Player.Purchase(location);
+
+                // Notify subscribers of change in credits
+                OnCreditsChange(this, Player.Account.Credits);
             }
 
             return success;
@@ -216,6 +249,9 @@ namespace Monopoly
             var success = (bool)response["success"];
             if (success) {
                 Player.Purchase(item);
+
+                // Notify subscribers of change in credits
+                OnCreditsChange(this, Player.Account.Credits);
             }
 
             return success;
