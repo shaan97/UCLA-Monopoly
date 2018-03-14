@@ -112,12 +112,8 @@ Whenever responding about locations, each location is described with the followi
   owner: <owner>,
   owned_until: <unix_timestamp>,
   tier: <tier_owned>,
-  prices: [
-            // Array where i^th entry is the i^th tier
-          ],
-  taxes:  [
-            // Array where i^th entry is the tax for the i^th tier
-          ]
+  price: <location_purchase_price>,
+  tax: <location_tax>,
 }
 ```
 Note that the `northeast` and `southwest` GPS coordinates exactly define a rectangular region.
