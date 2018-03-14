@@ -41,6 +41,7 @@ namespace Monopoly {
 
             pending_ids = new Dictionary<int, SemaphoreSlim>();
             queued_requests = new Queue<(JObject, SemaphoreSlim)>();
+            responses = new Dictionary<SemaphoreSlim, string>();
 
             // Set up event handlers
             socket.Opened += OnOpen;
@@ -64,7 +65,9 @@ namespace Monopoly {
             return socket.OpenAsync();
         }
 
+        // TODO : Design issue. Send some sort of generic message object, not JObject.
         public async void Send(JObject json) {
+
             int request_id = -1;
             LinkedListNode<int> node;
             SemaphoreSlim complete = new SemaphoreSlim(1, 1);
@@ -119,6 +122,7 @@ namespace Monopoly {
             socket.Send(json.ToString());
         }
 
+        // TODO : Design issue. Send some sort of generic message object, not JObject.
         public async Task<string> Request(JObject json) {
             int request_id = -1;
             LinkedListNode<int> node;
