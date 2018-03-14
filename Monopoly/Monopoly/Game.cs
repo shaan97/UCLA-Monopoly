@@ -18,13 +18,13 @@ namespace Monopoly
         private IServer server;
 
         // Separate member variable for direct reference to main client
-        public Player player { get; protected set; }
+        public Player Player { get; protected set; }
         
         public Game(string name) {
             server = new WebSocketServer();
             var connection = server.ConnectAsync();
 
-            player = new Player(name);
+            Player = new Player(name);
             Opponents = new Dictionary<string, Player>();
 
             // Make sure connection is established
@@ -53,11 +53,11 @@ namespace Monopoly
 
         private async Task<bool> JoinGame() {
             JObject json = new JObject {
-                ["request"] = "JOIN_GAME",
-                ["player_name"] = player.Name
+                ["operation"] = "JOIN_GAME",
+                ["player_name"] = Player.Name
             };
             
-            var response = JObject.Parse(await server.Request(json));
+            var response = JObject.Parse(await server.operation(json.ToString()));
             var status = (int)response["status"];
 
             System.Diagnostics.Debug.WriteLine($"JOIN_GAME response status: {status}");
@@ -69,10 +69,10 @@ namespace Monopoly
 
         private async Task<bool> LoadOpponents() {
             JObject json = new JObject {
-                ["request"] = "PLAYER_INFO"
+                ["operation"] = "PLAYER_INFO"
             };
 
-            var response = JObject.Parse(await server.Request(json));
+            var response = JObject.Parse(await server.Request(json.ToString()));
             var status = (int)response["status"];
 
             System.Diagnostics.Debug.WriteLine($"PLAYER_INFO response status: {status}");
@@ -114,12 +114,12 @@ namespace Monopoly
         public async Task<LocationStats> GetLocationStats((double, double) gps_coordinates) {
             // JSON requesting Location info at specified coordinates
             JObject json = new JObject {
-                ["request"] = "LOC_INFO",
+                ["operation"] = "LOC_INFO",
                 ["location"] = $"{gps_coordinates.Item1},{gps_coordinates.Item2}"
             };
 
             // Request response from server asynchronously
-            var response = JObject.Parse(await server.Request(json));
+            var response = JObject.Parse(await server.Request(json.ToString()));
 
             // Status using HTTP Status Codes
             int status = (int)response["status"];
@@ -139,18 +139,18 @@ namespace Monopoly
 
         public async Task<bool> Purchase(Location location) {
             JObject json = new JObject {
-                ["request"] = "PURCHASE",
+                ["operation"] = "PURCHASE",
                 ["purchase_code"] = location.Properties.PurchaseCode,
                 ["tier"] = location.Tier
             };
 
             // Send query and await response asynchronously
-            var response = JObject.Parse(await server.Request(json));
+            var response = JObject.Parse(await server.Request(json.ToString()));
 
             // True iff HTTP Status Code 2xx (Success)
             var success = (int)response["status"] / 200 == 1;
             if (success) {
-                player.Purchase(location);
+                Player.Purchase(location);
             }
 
             return success;
@@ -158,17 +158,17 @@ namespace Monopoly
 
         public async Task<bool> Purchase(IPurchasable item) {
             JObject json = new JObject {
-                ["request"] = "PURCHASE",
+                ["operation"] = "PURCHASE",
                 ["purchase_code"] = item.PurchaseCode
             };
 
             // Send query and await response asynchronously
-            var response = JObject.Parse(await server.Request(json));
+            var response = JObject.Parse(await server.Request(json.ToString()));
             
             // True iff HTTP Status Code 2xx (Success)
             var success = (int)response["status"] / 200 == 1;
             if (success) {
-                player.Purchase(item);
+                Player.Purchase(item);
             }
 
             return success;
