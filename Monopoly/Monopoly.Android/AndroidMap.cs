@@ -17,11 +17,17 @@ using Android.Widget;
 namespace Monopoly.Droid {
     class AndroidMap : IMap {
 
-        public event EventHandler<((double, double), (double, double))> LocationChanged;
+        public event EventHandler<(double, double)> LocationChanged;
 
         private static Android.Gms.Location.FusedLocationProviderClient fusedLocationProviderClient;
 
-        public AndroidMap() {
+        public static AndroidMap Instance { get; protected set; }
+
+        static AndroidMap() {
+            Instance = new AndroidMap();
+        }
+
+        private AndroidMap() {
             // TODO : Does this cast fail?
             fusedLocationProviderClient = LocationServices.GetFusedLocationProviderClient((Android.App.Activity)Plugin.CurrentActivity.CrossCurrentActivity.Current);
             
@@ -35,6 +41,7 @@ namespace Monopoly.Droid {
             
             */
         }
+
 
         public async Task<(double, double)> GetCurrentCoordinates() {
             var location = await fusedLocationProviderClient.GetLastLocationAsync();
