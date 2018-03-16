@@ -1,4 +1,4 @@
-﻿/*using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -43,7 +43,7 @@ namespace Monopoly.Droid {
         }
 
         protected override void OnMapReady(Android.Gms.Maps.GoogleMap map) {
-            /*location_task.Wait();
+            location_task.Wait();
             var allLocations = location_task.Result;
             polytoLocation = new Dictionary<Polygon, LocationStats>();
             foreach(LocationStats x in allLocations)
@@ -71,8 +71,8 @@ namespace Monopoly.Droid {
                 polytoLocation.Add(poly, x);
             }
             NativeMap.PolygonClick += NativeMap_PolygonClick;
-            */
-  /*      }
+            
+        }
         
         private async void NativeMap_PolygonClick(object sender, GoogleMap.PolygonClickEventArgs e)
         {
@@ -106,4 +106,3 @@ namespace Monopoly.Droid {
         }
     }
 }
-*/
