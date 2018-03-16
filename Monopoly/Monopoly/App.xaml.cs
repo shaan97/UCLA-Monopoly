@@ -13,7 +13,7 @@ namespace Monopoly
 		{
 			InitializeComponent();
 
-			MainPage = new Monopoly.MainPage();
+			MainPage = new NavigationPage(new Monopoly.LoginPage());
 		}
 
 		protected override void OnStart ()
